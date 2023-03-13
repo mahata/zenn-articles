@@ -1,0 +1,23 @@
+{
+  "name": "zenn-articles",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/mahata/zenn-articles.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mahata/zenn-articles/issues"
+  },
+  "homepage": "https://github.com/mahata/zenn-articles#readme",
+  "dependencies": {
+    "zenn-cli": "^0.1.141"
+  }
+}
