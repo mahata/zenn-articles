@@ -38,7 +38,7 @@ ChatGPT の登場により、一般的なウェブ検索を使うことはだい
 ```javascript
 const searchBox = document.getElementById('q');
 
-if (searchBox && searchBox.value.trim() !== "") {
+if (searchBox && searchBox.value.trim() !== "") {[startpage-chrome-extension](..%2Fimages%2Fstartpage-chrome-extension)
     document.title = searchBox.value + " - StartPage";
 }
 ```
