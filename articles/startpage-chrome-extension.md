@@ -16,7 +16,7 @@ ChatGPT の登場により、一般的なウェブ検索を使うことはだい
 
 さて、生の Startpage を使っていると困ることがあります。複数の検索結果ページを見分けられないのです。たとえば "Startpage", "DuckDuckGo", "Google" というキーワードで検索した 3 つのタブがあるとします。Google Chrome では次のように表示されます。
 
-![Chrome 拡張なし](/images/startpage-extension/without-extension-compressed.gif)
+![Chrome 拡張なし](/images/startpage-chrome-extension/without-extension-compressed.gif)
 
 検索を繰り返すと、どのタブにどの検索結果があるのかわからなくなってしまいます。
 
@@ -24,11 +24,11 @@ ChatGPT の登場により、一般的なウェブ検索を使うことはだい
 
 しかし、これはユーザビリティをトレードオフにしており、個人的には耐え難いです。これを解消するための [Startpage Nicer Title Extension](https://chromewebstore.google.com/u/1/detail/startpage-nicer-title-ext/bnmehmalocfmlifckddiolikhcdkaifa) という Chrome Extension を作りました。これをインストールすると、タブの様子は次のようになります。
 
-![Chrome 拡張あり](/images/startpage-extension/with-extension-compressed.gif)
+![Chrome 拡張あり](/images/startpage-chrome-extension/with-extension-compressed.gif)
 
 違いが伝わるでしょうか? 念のために注釈付きの静止画も貼っておきます。
 
-![タイトル](/images/startpage-extension/annotation.png)
+![タイトル](/images/startpage-chrome-extension/annotation.png)
 
 検索キーワードがタブの先頭に付与されています。これにより、複数の検索結果がブラウザ内に存在していても、それらのページを用意に見分けられるようになります。
 
