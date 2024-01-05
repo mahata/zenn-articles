@@ -4,6 +4,7 @@ emoji: "✨"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["linux", "ops", "SadServers"]
 published: true
+published_at: 2023-06-01 09:00
 ---
 
 [SadServers](https://sadservers.com/) というウェブサービスがあります。トップページには **"Like LeetCode for Linux"** と書かれています。ここでは Linux サーバーのトラブルシュートを楽しめます。ユーザーには一時的に接続できる Ubuntu サーバーが与えられ、ブラウザで動くターミナルで与えられた環境のトラブルシュートをします。[GitHub で SadServers のアーキテクチャが説明されており](https://github.com/fduran/sadservers)、なかなか面白い構成になっています。

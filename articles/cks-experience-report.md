@@ -4,6 +4,7 @@ emoji: "🦔"
 type: "idea" # tech: 技術記事 / idea: アイデア
 topics: ["Kubernetes", "CKS", "k8s"]
 published: true
+published_at: 2023-10-01 09:00
 ---
 
 先日 [CKS (Certified Kubernetes Security Specialist)](https://training.linuxfoundation.org/certification/certified-kubernetes-security-specialist/) に合格しました。記憶が新しい内に「受験体験記」を書き残そうと思います。

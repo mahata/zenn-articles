@@ -4,6 +4,7 @@ emoji: "🔎"
 type: "idea" # tech: 技術記事 / idea: アイデア
 topics: ["Search", "Startpage", "Chrome"]
 published: true
+published_at: 2024-01-04 09:00
 ---
 
 ChatGPT の登場により、一般的なウェブ検索を使うことはだいぶ減りました。とはいえ ChatGPT は新しい知識を持たないので、最新の情報を得るため、まれに検索エンジンを使うこともあると思います。
