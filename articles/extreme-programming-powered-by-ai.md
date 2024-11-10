@@ -68,6 +68,12 @@ published: true
 
 たとえばプルリクエストに含まれる変更リストに対して Copilot が改善案を提示してくれる、というのはそう遠くない未来の話ではないかと思います。[CodeRabbit](https://www.coderabbit.ai) のようなサードパーティのツールではすでに実現されています。また、[現状でもプルリクエストのサマリーを作成してくれる機能が存在する](https://docs.github.com/ja/enterprise-cloud@latest/copilot/responsible-use-of-github-copilot-features/responsible-use-of-github-copilot-pull-request-summaries)ので、その目的でもプルリクエストベースの変更取り込みがトランクベース開発に対して優位性があると言えるかもしれません。
 
+(2024年11月10日追記)
+
+[GitHub Copilot code review in GitHub.com (public preview)](https://github.blog/changelog/2024-10-29-github-copilot-code-review-in-github-com-public-preview/) という記事が出ていました。もう GitHub Copilot が Pull Request をレビューする機能というのは現実のものなんですね。
+
+(追記ここまで)
+
 ## まとめ
 
 Copilot などの AI がソフトウェア開発にもたらす変化は大きく、不可逆的なものだと思います。これまで特に XP のプラクティスに対する影響について考察した記事を読んだことがなかったので、自分の思うところを書いてみました。まだまだ自分には見えていないことも多いと思うので、ぜひ他の方がどう考えているのかも知りたいと思っています。
