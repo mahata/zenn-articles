@@ -6,14 +6,14 @@ topics: ["Mac", "macOS", "translation"]
 published: true
 ---
 
-最近は Safari をメインのブラウザーとして利用しています。Safari にはデフォルトでページの翻訳機能があり、アドレスバーの右側にあるアイコンからページを翻訳させられます。
+私は Safari をメインのブラウザーとして利用しています。Safari にはデフォルトでページの翻訳機能があり、アドレスバーの右側にあるアイコンからページを翻訳させられます。
 
 ![Safari Translation](/images/safari-translation-keybind/safari-translation.png)
 
 
 この機能をキーボードショートカットで利用できるようにしてみましょう。
 
-私は macOS Sequoia (15.1) を使用しています。この macOS ではキーボードショートカットのメニューへは次のようにしてたどり着きます。
+以下は macOS Sequoia (15.1) での設定です。キーボードショートカットのメニューへは次のようにしてたどり着きます。
 
 1. System Settings
 2. Keyboard
