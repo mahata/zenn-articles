@@ -1,0 +1,9 @@
+title: "React と Spring Boot で作るブログサービス"
+summary: "React と Spring Boot を使ってブログサービスを作成するチュートリアル"
+topics: ["react", "typescript", "spring", "kotlin"]
+published: false
+price: 0
+chapters:
+  - foreword
+  - setup
+  - first-page
