@@ -56,14 +56,13 @@ $ tree .
 
 ## React プロジェクトの作成
 
-`frontend` ディレクトリに移動して、[Vite を使ってプロジェクトを作成します](https://ja.vite.dev/guide/) を使ってプロジェクトを作成します。Vite には様々な機能がありますが、ここでは React プロジェクトの雛形を作ってくれるツールとして使います。
+`frontend` ディレクトリに移動して、[Vite を使ってプロジェクトを作成します](https://ja.vite.dev/guide/) を使ってプロジェクトを作成します。Vite には様々な機能がありますが、ここでは React プロジェクトの雛形を作ってくれるツールとして使います。プロジェクトのルートディレクトリで次のコマンドを実行します。
 
 ```shell
-$ cd frontend
 $ npm create vite@latest frontend -- --template react-ts
 ```
 
-さて、これでプロジェクト直下に `backend/` と `frontend/` のディレクトリができました。`frontend/` は `backend/` にある Spring Boot プロジェクトと連携するため、Vite を設定します。`vite.config.ts` を次のように変更します。
+これでルートディレクトリ配下に `backend/` と `frontend/` のディレクトリができました。`frontend/` は `backend/` にある Spring Boot プロジェクトと連携するため、Vite を設定します。`vite.config.ts` を次のように変更します。
 
 ```typescript
 import { defineConfig } from 'vite'
@@ -89,3 +88,38 @@ export default defineConfig({
 
 React アプリケーションで複数のパスを処理する方法については後の章で説明します。
 :::
+
+React アプリケーションを起動するには、`frontend/` ディレクトリで `npm run dev` を実行します。なお、初回実行時には `npm install` コマンドも実行する必要があります。
+
+```shell
+$ cd frontend
+$ npm install
+$ npm run dev
+```
+
+実行結果として次のような出力が表示されます。
+
+```shell
+$ npm run dev
+
+> frontend@0.0.0 dev
+> vite
+
+
+  VITE v6.0.3  ready in 231 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+  ➜  press h + enter to show help
+```
+
+表示されている通り `http://localhost:5173/` にアクセスすると React アプリケーションが表示されます。本原稿の執筆時点では初期画面は次のようになります。
+
+![React Default Page Screenshot](/images/book/full-stack-blog/initial-react-page.png)
+
+これで環境構築が完了しました。
+
+次の章では、Spring Boot プロジェクトと React プロジェクトを連携していきます。
+
+:::message
+この章で作成したプロジェクトは、[GitHub に公開しています]()。このリポジトリをクローンして、この章の内容を確認することができます。
