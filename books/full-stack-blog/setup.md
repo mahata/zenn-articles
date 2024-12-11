@@ -122,5 +122,5 @@ $ npm run dev
 次の章では、React で最初のページを作成します。
 
 :::message
-この章で作成したプロジェクトは、[GitHub に公開しています](https://github.com/mahata/full-stack-blog)。このリポジトリをクローンして、この章の内容を確認できます。
+この章で作成したプロジェクトは、[GitHub に公開しています](https://github.com/mahata/full-stack-blog)。このリポジトリをクローンして、この章の内容を確認できます。また、各々の章の内容をタグとして登録しているので、特定の章の内容を確認する際には、対応するタグをチェックアウトしてください。たとえば、この章であれば[「環境構築」のタグをつけています](https://github.com/mahata/full-stack-blog/releases/tag/環境構築)。
 :::
