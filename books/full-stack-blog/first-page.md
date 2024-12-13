@@ -58,6 +58,75 @@ main.tsx に `import 'the-new-css-reset/css/reset.css'` という行を追加し
 
 ### Tailwind CSS の適用
 
-このプロジェクトでは [Tailwind CSS](https://tailwindcss.com) を使ってスタイルを適用していきます。Tailwind CSS は CSS フレームワークの一つで、クラス名を使ってスタイルを適用できます。たとえば、`<button />` 要素に `bg-blue-500 text-white` というクラス名を付けると、背景色が青くなり、文字色が白くなります。このように、あらかじめ設定されたクラスのことをユーティリティクラスと呼びます。また、ユーティリティクラスを組み上げて作るデザインのことを、ユーティリティファーストと言うこともあります。
+このプロジェクトでは [Tailwind CSS](https://tailwindcss.com) を使ってスタイルを適用していきます。Tailwind CSS は CSS フレームワークの一つで、クラス名を使ってスタイルを適用できます。たとえば、`<button />` 要素に `bg-blue-500 text-white` というクラス名を付けると、背景色が青くなり、文字色が白くなります。このように、あらかじめ設定されたクラスのことをユーティリティクラスと呼びます。
+
+Tailwind CSS を導入するには、まず npm パッケージをインストールします。
+
+```shell
+$ cd frontend
+$ npm install -D tailwindcss
+```
+
+次に、`tailwind.config.js` を作成します。`frontend/` ディレクトリで次のコマンドを実行します。
+
+```shell
+$ npx tailwindcss init
+```
+
+`tailwind.config.js` は Tailwind CSS の設定ファイルです。次のように書き換えてください。
+
+```
+```
+
+次の内容で `frontend/src/index.css` を作成します。
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+PostCSS で Tailwind CSS を使うための設定を追加します。`frontend/` ディレクトリで次のコマンドを実行します。
+
+```shell
+$ npm install -D postcss autoprefixer
+```
+
+`frontend/postcss.config.js` を次の内容で作成します。
+
+```javascript
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+最後に、`main.tsx` に `import './index.css'` という行を追加します。
+
+:::message
+Tailwind CSS は熱狂的に指示する開発者もいれば、批判的な立場を取る方もいます。
+
+Tailwind CSS の公式ページに行けば、支持者の熱いコメントが並んでいます。たとえば [Vercel CEO の Guillermo 氏のコメント](https://x.com/rauchg/status/1225611926320738304)は次の通りです。
+
+> If I had to recommend a way of getting into programming today, it would be HTML + CSS with
+@tailwindcss
+>
+> 今からプログラミングを始めるなら、HTML と Tailwind CSS から入るのをお勧めするよ。
+
+批判的な意見も数多くあります。筆者が目にしたもので、もっともまとまっているのは [uhyo さんによる「Tailwind考」](https://blog.uhy.ooo/entry/2022-10-01/tailwind/)という記事です。
+
+筆者が本書で Tailwind CSS を使う理由は主にふたつです。
+
+1. CSS ファイルを別に管理しなくて良いから
+2. 多くの開発者が Tailwind CSS を無視できなくなりそうだから
+
+CSS ファイルを React コンポーネントと別に管理すると、どのタグにどのスタイルがあたっているか判断するのが難しくなります。CSS がネストされていると難易度が更にあがります。Tailwind CSS なら、クラス名から適用されるスタイルが一目でわかります。
+
+また、npm trends などで調べればわかる通り、[Tailwind CSS は今なおユーザー数を増やしています](https://npmtrends.com/tailwindcssn)。フロントエンドを触る開発者であれば、Tailwind CSS を知っておいて損はないでしょう。
+:::
+
+## Biome の導入
 
 (以下、執筆中)
