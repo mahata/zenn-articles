@@ -46,4 +46,61 @@ published: false
 ネタ元の記事は元々 Java で書かれており、ロケットではなくミサイルの発射を制御するような内容でした。アクセスはできなくなってしまったものの、筆者は元記事に多大なリスペクトを払っています。
 :::
 
-(執筆中)
+### 最初の状態
+
+ふたつのインタフェースがあります。`Rocket` と `LaunchCode` です。
+
+まずは `Rocket` から見てみましょう。 
+
+```kotlin
+interface Rocket {
+    // ロケットを発射する
+    fun launch()
+
+    // ロケットを発射不能にする
+    fun disable()
+}
+```
+
+簡単ですね。次は `LaunchCode` です。これは `Rocket` を発射するときに必要なコードです (以下、発射コードと言います)。無闇矢鱈にロケットを発射させるわけにはいきませんから。
+
+```kotlin
+interface LaunchCode {
+    // 発射コードが期限切れしているかを返す 
+    fun isExpired(): Boolean
+
+    // 発射コードが署名されているかを返す
+    fun isSigned(): Boolean
+}
+```
+
+また、メインメソッドとして `launchRocket()` というメソッドを用意しました。今は空です。
+
+```kotlin
+class Launcher {
+    fun launchRocket(rocket: Rocket, launchCode: LaunchCode) {}
+}
+```
+
+実装の途中で `launchRocket()` に本物のロケットを発射してほしくはありません。悲惨なことになってしまいます。そこで、ダミーのロケットについて考えてみましょう。
+
+### ダミーのロケット
+
+ロケットを発射するには、有効な発射コードが必要です。発射コードは、たとえば有効期限が切れていると無効になります。そのようなケースではロケットが発射されないことを保証したいです。ロケットが発射されなかったことを単体テストで確認するにはどうすればいいでしょう?
+
+ダミーのロケットを使うという方法があります。
+
+```kotlin
+class DummyRocket: Rocket {
+    override fun launch() {
+        throw RuntimeException()
+    }
+
+    override fun disable() {}
+}
+```
+
+前述のように、ダミーは "実際に使おうとすると壊れ" ます。誰かが launch() をコールすると例外を投げます。`launchRocket()` が `DummyRocket` を使おうとすると失敗するテストは次のようになるでしょう。
+
+```kotlin
+``` 
