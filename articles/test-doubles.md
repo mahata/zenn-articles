@@ -103,4 +103,8 @@ class DummyRocket: Rocket {
 前述のように、ダミーは "実際に使おうとすると壊れ" ます。誰かが launch() をコールすると例外を投げます。`launchRocket()` が `DummyRocket` を使おうとすると失敗するテストは次のようになるでしょう。
 
 ```kotlin
+@Test
+fun givenExpiredLaunchCodes_RocketIsNotLaunched() {
+    Launcher().launchRocket(DummyRocket(), ExpiredLaunchCodeStub())
+}
 ``` 
