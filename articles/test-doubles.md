@@ -2,7 +2,7 @@
 title: "テストダブルとは何か?"
 emoji: "5️⃣"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["testdoubles", "testing", "tdd", "kotlin"]
+topics: ["testdoubles", "testing", "tdd", "typescript"]
 published: false
 ---
 
@@ -38,7 +38,7 @@ published: false
 
 ## 「ロケット発射」システムをテストするテストダブル
 
-ここからはハンズオンです。「ロケット発射」を制御するプログラムを例に、テストダブルについて考えましょう。例は Kotlin ですが、Kotlin の知識がなくても理解できるように書いています。具体的には「インタフェース」と「継承」の概念がわかれば読み進められるでしょう。
+ここからはハンズオンです。「ロケット発射」を制御するプログラムを例に、テストダブルについて考えましょう。例は TypeScript ですが、TypeScript 特有の知識がなくても理解できるように書いています。具体的には「インタフェース」と「継承」の概念がわかれば読み進められるでしょう。
 
 :::message
 このプログラムにはネタ元が存在します。VMware Tanzu Labs が公開していた「The Test Double Rule of Thumb」というブログ記事です。2024 年の中頃まではアクセスできたのですが、ブログそのものが非公開になってしまいました。
@@ -50,39 +50,50 @@ published: false
 
 ふたつのインタフェースがあります。`Rocket` と `LaunchCode` です。
 
-まずは `Rocket` から見てみましょう。 
+まずは `Rocket` から見てみましょう。
 
-```kotlin
-interface Rocket {
-    // ロケットを発射する
-    fun launch()
+```typescript
+export interface Rocket {
+  // ロケットを発射する
+  launch(): void
 
-    // ロケットを発射不能にする
-    fun disable()
+  // ロケットを発射不能にする
+  disable(): void
 }
 ```
 
 簡単ですね。次は `LaunchCode` です。これは `Rocket` を発射するときに必要なコードです (以下、発射コードと言います)。無闇矢鱈にロケットを発射させるわけにはいきませんから。
 
-```kotlin
-interface LaunchCode {
-    // 発射コードが期限切れしているかを返す 
-    fun isExpired(): Boolean
+```typescript
+export interface LaunchCode {
+  // 発射コードが期限切れしているかを返す
+  isExpired(): boolean
 
-    // 発射コードが署名されているかを返す
-    fun isSigned(): Boolean
+  // 発射コードが署名されているかを返す
+  isSigned(): boolean
+}
+
+```
+
+また、メインクラスとして `Launcher` を作り、`launchRocket()` というメソッドを用意しました。今は単に `Rocket` オブジェクトを `launch()` するだけのメソッドです。
+
+```typescript
+export class Launcher {
+  rocket: Rocket
+  launchCode: LaunchCode
+
+  constructor(rocket: Rocket, launchCode: LaunchCode) {
+    this.rocket = rocket
+    this.launchCode = launchCode
+  }
+
+  launchRocket() {
+    this.rocket.launch()
+  }
 }
 ```
 
-また、メインメソッドとして `launchRocket()` というメソッドを用意しました。今は空です。
-
-```kotlin
-class Launcher {
-    fun launchRocket(rocket: Rocket, launchCode: LaunchCode) {}
-}
-```
-
-実装の途中で `launchRocket()` に本物のロケットを発射してほしくはありません。悲惨なことになってしまいます。そこで、ダミーのロケットについて考えてみましょう。
+しかし、実装の途中で `launchRocket()` に本物のロケットを発射してほしくはありません。悲惨なことになってしまいます。そこで、ダミーのロケットについて考えてみましょう。
 
 ### ダミーのロケット
 
@@ -90,21 +101,48 @@ class Launcher {
 
 ダミーのロケットを使うという方法があります。
 
-```kotlin
-class DummyRocket: Rocket {
-    override fun launch() {
-        throw RuntimeException()
-    }
+```typescript
+export class DummyRocket implements Rocket {
+  launch() {
+    throw Error()
+  }
 
-    override fun disable() {}
+  disable() {}
 }
 ```
 
-前述のように、ダミーは "実際に使おうとすると壊れ" ます。誰かが launch() をコールすると例外を投げます。`launchRocket()` が `DummyRocket` を使おうとすると失敗するテストは次のようになるでしょう。
+前述のように、ダミーは "実際に使おうとすると壊れ" ます。誰かが launch() をコールすると例外を投げます。`launchRocket()` が `DummyRocket` を使おうとすると失敗するテストは次のようになります。
 
-```kotlin
-@Test
-fun givenExpiredLaunchCodes_RocketIsNotLaunched() {
-    Launcher().launchRocket(DummyRocket(), ExpiredLaunchCodeStub())
+```typescript
+it("発射コードが期限切れであれば、ロケットは発射しない", () => {
+  const launcher = new Launcher(new DummyRocket(), new ValidLaunchCodeStub())
+  launcher.launchRocket()
+})
+```
+
+:::message
+`ValidLaunchCodeStub` は次のように実装されています。これは「スタブ」というテストダブルですが、スタブの定義については後の節で行います。
+
+```typescript
+export class ValidLaunchCodeStub implements LaunchCode {
+  isSigned() {
+    return true
+  }
+
+  isExpired() {
+    return false
+  }
 }
-``` 
+```
+:::
+
+このテストは失敗します。`dummyRocket` は `launch()` すると例外を投げるのだから、当然ですね。
+
+これで「ロケットが使われると失敗する」テストができあがりました! めでたしめでたし...となるでしょうか? なりませんね。このテストには次の問題があります。
+
+1. テストコードにアサーションが存在しないため、テストの意図がわかりにくい。
+2. 実装コードで例外をキャッチすることで、`launch()` してもテストを通せてしまう。
+
+2. について補足します。
+
+(執筆中)
