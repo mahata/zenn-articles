@@ -3,7 +3,7 @@ title: "テストダブルとは何か?"
 emoji: "5️⃣"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["testdoubles", "testing", "tdd", "typescript"]
-published: false
+published: true
 ---
 
 テストダブルという言葉をご存知でしょうか? 仮に知らないとしても、多くのソフトウェアエンジニアはこれを利用したことがあります。たとえば Java の世界で Mockito を使ったり、JavaScript の世界で Jest を使う場合、ほぼ間違いなくテストダブルを使っています。すなわち、本物のコードを「模倣」するコードのことをテストダブルと言います。
@@ -115,8 +115,8 @@ export class DummyRocket implements Rocket {
 
 ```typescript
 it("発射コードが期限切れであれば、ロケットは発射しない", () => {
-  const launcher = new Launcher(new DummyRocket(), new ExpiredLaunchCodeStub())
-  launcher.launchRocket()
+  const launcher = new Launcher()
+  launcher.launchRocket(new DummyRocket(), new ExpiredLaunchCodeStub())
 })
 ```
 
@@ -185,8 +185,8 @@ export class RocketSpy implements Rocket {
 it("発射コードが期限切れであれば、ロケットは発射しない", () => {
   const rocket = new RocketSpy()
 
-  const launcher = new Launcher(rocket, new ExpiredLaunchCodeStub())
-  launcher.launchRocket()
+  const launcher = new Launcher()
+  launcher.launchRocket(rocket, new ExpiredLaunchCodeStub())
 
   expect(rocket.wasLaunchCalled()).toBe(false)
 })
@@ -202,8 +202,8 @@ it("発射コードが期限切れであれば、ロケットは発射しない"
   const rocket = new ValidRocket()
   const launchSpy = vi.spyOn(rocket, "launch")
 
-  const launcher = new Launcher(rocket, new ExpiredLaunchCodeStub())
-  launcher.launchRocket()
+  const launcher = new Launcher()
+  launcher.launchRocket(rocket, new ExpiredLaunchCodeStub())
 
   expect(launchSpy).not.toHaveBeenCalled()
 })
@@ -232,8 +232,8 @@ it("発射コードが期限切れであれば、ロケットは発射しない"
   const rocket = new RocketSpy()
 
   // When: 有効期限切れの発射コードでロケットを発射しようとすると
-  const launcher = new Launcher(rocket, new ExpiredLaunchCodeStub())
-  launcher.launchRocket()
+  const launcher = new Launcher()
+  launcher.launchRocket(rocket, new ExpiredLaunchCodeStub())
 
   // Then: ロケットは発射されない
   expect(rocket.wasLaunchCalled()).toBe(false)
@@ -254,8 +254,8 @@ it("発射コードが期限切れであれば、ロケットは発射しない"
 it("発射コードが期限切れであれば、ロケットは発射しない", () => {
   const rocket = new RocketSpy()
 
-  const launcher = new Launcher(rocket, new ExpiredLaunchCodeStub())
-  launcher.launchRocket()
+  const launcher = new Launcher()
+  launcher.launchRocket(rocket, new ExpiredLaunchCodeStub())
 
   expect(rocket.wasLaunchCalled()).toBe(false)
   expect(rocket.wasDisableCalled()).toBe(true) // この行を追加
@@ -298,8 +298,8 @@ export class RocketSpy implements Rocket {
 it("発射コードが署名されていなければ、ロケットは発射しない", () => {
   const rocket = new RocketSpy()
 
-  const launcher = new Launcher(rocket, new UnsignedLaunchCodeStub())
-  launcher.launchRocket()
+  const launcher = new Launcher()
+  launcher.launchRocket(rocket, new UnsignedLaunchCodeStub())
 
   expect(rocket.wasLaunchCalled()).toBe(false)
   expect(rocket.wasDisableCalled()).toBe(true)
@@ -340,8 +340,8 @@ export class UnsignedLaunchCodeStub implements LaunchCode {
 it("発射コードが期限切れであれば、ロケットは発射しない", () => {
   const rocket = new RocketSpy()
 
-  const launcher = new Launcher(rocket, new ExpiredLaunchCodeStub())
-  launcher.launchRocket()
+  const launcher = new Launcher()
+  launcher.launchRocket(rocket, new ExpiredLaunchCodeStub())
 
   expect(rocket.wasLaunchCalled()).toBe(false)
   expect(rocket.wasDisableCalled()).toBe(true)
@@ -350,8 +350,8 @@ it("発射コードが期限切れであれば、ロケットは発射しない"
 it("発射コードが署名されていなければ、ロケットは発射しない", () => {
   const rocket = new RocketSpy()
 
-  const launcher = new Launcher(rocket, new UnsignedLaunchCodeStub())
-  launcher.launchRocket()
+  const launcher = new Launcher()
+  launcher.launchRocket(rocket, new UnsignedLaunchCodeStub())
 
   expect(rocket.wasLaunchCalled()).toBe(false)
   expect(rocket.wasDisableCalled()).toBe(true)
@@ -413,3 +413,97 @@ export class ExpiredLaunchCodeStub extends ValidLaunchCode {
 ```
 
 いかがでしょう。ベースクラス `ValidLaunchCode` を導入することで、それぞれのスタブのフォーカスがわかりやすくなりました。
+
+## フェイクの導入
+
+プロダクトマネジャーから、またまた新しい要件が渡されました。発射コードは一回きりしか使えないようにしてほしいそうです。誰かが使った発射コードは、もう利用できないということです。
+
+テストコードは次のようになるでしょう。
+
+```typescript
+it("使用済みの発射コードであれば、ロケットは発射しない", () => {
+  const rocket1 = new RocketMock()
+  const rocket2 = new RocketMock()
+  const launchCode = new ValidLaunchCode()
+
+  const launcher = new Launcher()
+  launcher.launchRocket(rocket1, launchCode)
+  launcher.launchRocket(rocket2, launchCode)
+
+  rocket2.verifyAbort()
+})
+```
+
+どういう実装なら、このテストを通せるでしょう。使用済みの `launchCode` をどこに保存するべきでしょう。RDBMS? KVS? それとも他の何か? インメモリで保存していい? ディスクが必要?
+
+このような決断は「(可能なら) 後回しにしたい」ですね。より要件がはっきりしたタイミングで決断する方がベターです。具体的なバックエンドを考えずに実装するため、単にインタフェースだけを考えましょう。仮に `launchRocket()` メソッドが `usedLaunchCodes` という引数を受け取れるとしましょう。次のように使います。
+
+```typescript
+        Launcher.launchRocket(rocket1, launchCode, usedLaunchCodes);
+        Launcher.launchRocket(rocket2, launchCode, usedLaunchCodes);
+```
+
+`launchRocket()` メソッドで `usedLaunchCodes` を次のように使えたら、プロダクトマネジャーの要件を満足できるはずです。
+
+```typescript
+  launchRocket(rocket: Rocket, launchCode: LaunchCode, usedLaunchCodes: UsedLaunchCodes) {
+    if (!usedLaunchCodes.contain(launchCode) && !launchCode.isExpired() && launchCode.isSigned()) {
+      rocket.launch()
+      usedLaunchCodes.add(launchCode)
+    } else {
+      rocket.disable()
+    }
+  }
+```
+
+そう、`usedLaunchCodes` には `contains()` と `add()` があれば良いのです。ここまで来れば `UsedLaunchCodes` インタフェースは定義できそうです。そして、インタフェースが定義できれば、それを満足する偽物のクラスを作れそうですね。そうです、その偽物がフェイクです。
+
+フェイクは、他のテストダブルとは全く異なります。他のテストダブルは、替え玉となっている本物と簡単に見分けがつきます。一方、フェイクは本物と見分けがつかないように作ります。フェイクは、本物のすべての動作を模倣しなければなりません。フェイクは、本番コードで本物と同じように使ってもらうことを想定しています。でも、どうやってフェイクが期待された通りの動作をするか確認するのでしょう。テストを書けばいいですね 😉 フェイクを使うとき、フェイクそのもののテストが必要になります。これも他のテストダブルとは異なる点です。
+
+さて `UsedLaunchCodes` のインタフェースを TypeScript コードで表現すると次の通りです。
+
+```typescript
+export interface UsedLaunchCodes {
+  contain(launchCode: LaunchCode): boolean
+  add(launchCode: LaunchCode): void
+}
+```
+
+この実装クラスである `FakeUsedLaunchCodes` のテストはどのようになるでしょう。筆者は次のようなテストだと考えます。
+
+```typescript
+it("contains() は発射コードが使用済みか判別する", () => {
+  const usedLaunchCodes = new FakeUsedLaunchCodes()
+  const launchCode = new ValidLaunchCode()
+
+  expect(usedLaunchCodes.contain(launchCode)).toBe(false)
+
+  usedLaunchCodes.add(launchCode)
+
+  expect(usedLaunchCodes.contain(launchCode)).toBe(true)
+})
+```
+
+ここまで来れば、これを実装するのは難しくないでしょう。`FakeUsedlaunchCodes` の著者による実装は次の通りです。
+
+```typescript
+export class FakeUsedLaunchCodes implements UsedLaunchCodes {
+  private launchCodes: Set<LaunchCode> = new Set()
+
+  add(launchCode: LaunchCode): void {
+    this.launchCodes.add(launchCode)
+  }
+
+  contain(launchCode: LaunchCode): boolean {
+    return this.launchCodes.has(launchCode)
+  }
+}
+```
+
+これは...ずるくないですか? だって、この実装だとプロセスを再起動したら使用済み発射コードの履歴がなくなります。でも、フェイクは「だから良い」んです。このように実装することで、本物の `UsedLaunchCodes` のバックエンドに関する決断を後回しにできました。今はインメモリの `Set<LaunchCode>` が発射コードの履歴ですが、本物の実装では ValKey の Set になるかもしれないし、PostgreSQL になるかもしれません。それらが必要になったら `UsedLaunchCodes` を実装するクラスを作ればよいのです。
+
+## まとめ
+
+本記事ではテストダブルについて解説しました。テストダブルの種類を意識して、適切なテストダブルを選んでテストを書きましょう。
+
+[この記事で作成したコードは GitHub に上げてあります](https://github.com/mahata/test-doubles-typescript-sample)。しかし、最終形を眺めるだけでは理解が捗らないので、記事を読みながら実際に手を動かしてみることをお勧めします。
