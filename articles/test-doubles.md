@@ -246,4 +246,140 @@ it("発射コードが期限切れであれば、ロケットは発射しない"
 
 ## モックの導入
 
+プロダクトマネジャーから新しい要望が届きました。無効な発射コードが使われたとき、ロケットそのものも無効にしたいそうです。`Rocket` インタフェースには `disable()` メソッドが定義されていました。これをコールすればいいですね。
+
+先ほどのスパイを使ったテストコードを修正しましょう。
+
+```typescript
+it("発射コードが期限切れであれば、ロケットは発射しない", () => {
+  const rocket = new RocketSpy()
+
+  const launcher = new Launcher(rocket, new ExpiredLaunchCodeStub())
+  launcher.launchRocket()
+
+  expect(rocket.wasLaunchCalled()).toBe(false)
+  expect(rocket.wasDisableCalled()).toBe(true) // この行を追加
+})
+```
+
+アサーションをひとつ追加しました [^3]。特に難しいことはしていません。これを通すために `RocketSpy` を更新しましょう。次のようになります。
+
+[^3]: [ひとつのテストメソッドには単一のアサーションだけがあるべきという意見があります](https://t-wada.hatenablog.jp/entry/design-for-testability#ポイント-目指すのはテストメソッド毎にアサーションひとつ)。筆者はそのポリシーに同意していますが、ここでは説明の簡単さのためにそのポリシーを無視しています。
+
+```typescript
+export class RocketSpy implements Rocket {
+  launchWasCalled = false
+  disableWasCalled = false  // この行を追加
+
+  launch() {
+    this.launchWasCalled = true
+  }
+
+  wasLaunchCalled(): boolean {
+    return this.launchWasCalled
+  }
+
+  disable() {
+    this.disableWasCalled = true  // この行を追加
+  }
+
+   // このメソッドを追加
+  wasDisableCalled() {
+    return this.disableWasCalled
+  }
+}
+```
+
+ここまでは特に問題ありませんね。
+
+プロダクトマネジャーが言うには、期限切れの発射コードではロケットを発射できないのはもちろん、署名されていない発射コードでもロケットを発射できないそうです。なるほど、そういうことならテストケースがもうひとつ必要ですね。
+
+```typescript
+it("発射コードが署名されていなければ、ロケットは発射しない", () => {
+  const rocket = new RocketSpy()
+
+  const launcher = new Launcher(rocket, new UnsignedLaunchCodeStub())
+  launcher.launchRocket()
+
+  expect(rocket.wasLaunchCalled()).toBe(false)
+  expect(rocket.wasDisableCalled()).toBe(true)
+})
+```
+
+`UnsignedLaunchCodeStub` は次のようになります。`isSigned()` が `false` を返すのが特徴です。そのままですね。
+
+```typescript
+export class UnsignedLaunchCodeStub implements LaunchCode {
+  isSigned(): boolean {
+    return false
+  }
+
+  isExpired() {
+    return false
+  }
+}
+```
+
+さて、これらのテストをパスする実装を考えましょう。発射コードが期限切れではなく、署名されているときだけロケットを `launch()` できるのでした。ということは、実装は次のようになりますね。
+
+```typescript
+  launchRocket() {
+    if (!this.launchCode.isExpired() && this.launchCode.isSigned()) {
+      this.rocket.launch()
+    } else {
+      this.rocket.disable()
+    }
+  }
+```
+
+これですべてのテストが通ります。すべてのテストが通っているということは、リファクタリングをするタイミングだということです [^4]。これまでのふたつのテストケースをあらためて眺めてみましょう。
+
+[^4]: [テスト駆動開発は「Red => Green => Refactor」のサイクルをまわします](https://www.codecademy.com/article/tdd-red-green-refactor)。Red はテストが失敗する状態、Green はテストが通る状態を指します。Green の次が Refactor なのは、リファクタリング中に間違って実装を壊してもすぐに気づけるからです。
+
+```typescript
+it("発射コードが期限切れであれば、ロケットは発射しない", () => {
+  const rocket = new RocketSpy()
+
+  const launcher = new Launcher(rocket, new ExpiredLaunchCodeStub())
+  launcher.launchRocket()
+
+  expect(rocket.wasLaunchCalled()).toBe(false)
+  expect(rocket.wasDisableCalled()).toBe(true)
+})
+
+it("発射コードが署名されていなければ、ロケットは発射しない", () => {
+  const rocket = new RocketSpy()
+
+  const launcher = new Launcher(rocket, new UnsignedLaunchCodeStub())
+  launcher.launchRocket()
+
+  expect(rocket.wasLaunchCalled()).toBe(false)
+  expect(rocket.wasDisableCalled()).toBe(true)
+})
+```
+
+これらはとても似通っています。特に次の二行はまったく同じです。
+
+```typescript
+  expect(rocket.wasLaunchCalled()).toBe(false)
+  expect(rocket.wasDisableCalled()).toBe(true)
+```
+
+このアサーションの重複を一掃するため、`RocketSpy` 自身にアサーションの機能を持たせてみるのはどうでしょう。`RocketSpy` に次のメソッドを足してみます。
+
+```typescript
+  verifyAbort() {
+    expect(this.launchWasCalled).toBe(false)
+    expect(this.disableWasCalled).toBe(true)
+  }
+```
+
+これでテストコードの重複がなくなりました。スッキリですね。しかし...これは本当にこれはスパイなのでしょうか? 実はここまで来ると、このクラスはモックと呼ぶ方が良さそうです。本記事の最初で、モックのことを「自分自身をアサートできるスパイ」と表現しました。まさに、自分自身をアサートする機能を実装したところです!
+
+モックを使うデメリットはあるでしょうか。スパイよりモックの方が可読性が落ちると思う人もいるかもしれません。明示的なアサートがテスト本体から落ちてしまうので。アサートしている内容を調べるため、IDE で `verifyAbort()` にジャンプする必要があります。
+
+しかし、もしロケットを発射しない条件が増えたとき、そのアサートがテストケースごとに散らばっていると、その認知不可も馬鹿になりません。モックを使えばアサート内容を一箇所に集められるので、あちこちに同じコードを書く必要は減るでしょう。
+
+## スタブについて
+
 (執筆中)
