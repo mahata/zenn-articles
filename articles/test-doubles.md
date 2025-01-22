@@ -124,7 +124,7 @@ it("発射コードが期限切れであれば、ロケットは発射しない"
 `ExpiredLaunchCodeStu` は次のように実装されています。これは「スタブ」というテストダブルですが、スタブの定義については後の節で行います。
 
 ```typescript
-export class ExpiredLaunchCodeStu implements LaunchCode {
+export class ExpiredLaunchCodeStub implements LaunchCode {
   isSigned() {
     return true
   }
@@ -382,4 +382,34 @@ it("発射コードが署名されていなければ、ロケットは発射し�
 
 ## スタブについて
 
-(執筆中)
+さて、次はスタブについて話しましょう。...とはいえ、実はスタブはすでに登場しています。`ExpiredLaunchCodeStub` や `UnsignedLaunchCodeStub` です。これらはスタブとしての特性を満たしています。つまり、そのメソッドが「常に同じ値を返す」ということです。
+
+スタブはとても基本的なテストダブルで、これなしでテストを書くのはほぼ不可能と言えます。なので、この記事でも初手で説明なく書いてしまいました。一方で、理解も容易なテストダブルです。ここで説明を終えてしまおうかと思うほどに 😛
+
+ひとつだけ、ここまでのスタブの使い方に不満があるので、リファクタリングだけして本節を締めくくろうと思います。どこに不満があるかと言えば、`ExpiredLaunchCodeStub` や `UnsignedLaunchCodeStub` はそれぞれ Expire しているかどうかと Sign されているかどうかにのみ興味があるのに、それがわかりにくい点です。ベースクラスを導入して、これを解消してみましょう。
+
+```typescript
+export class ValidLaunchCode implements LaunchCode {
+  isSigned() {
+    return true
+  }
+
+  isExpired() {
+    return false
+  }
+}
+
+export class UnsignedLaunchCodeStub extends ValidLaunchCode {
+  isSigned(): boolean {
+    return false
+  }
+}
+
+export class ExpiredLaunchCodeStub extends ValidLaunchCode {
+  isExpired() {
+    return true
+  }
+}
+```
+
+いかがでしょう。ベースクラス `ValidLaunchCode` を導入することで、それぞれのスタブのフォーカスがわかりやすくなりました。
