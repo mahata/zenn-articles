@@ -115,22 +115,22 @@ export class DummyRocket implements Rocket {
 
 ```typescript
 it("発射コードが期限切れであれば、ロケットは発射しない", () => {
-  const launcher = new Launcher(new DummyRocket(), new ValidLaunchCodeStub())
+  const launcher = new Launcher(new DummyRocket(), new ExpiredLaunchCodeStub())
   launcher.launchRocket()
 })
 ```
 
 :::message
-`ValidLaunchCodeStub` は次のように実装されています。これは「スタブ」というテストダブルですが、スタブの定義については後の節で行います。
+`ExpiredLaunchCodeStu` は次のように実装されています。これは「スタブ」というテストダブルですが、スタブの定義については後の節で行います。
 
 ```typescript
-export class ValidLaunchCodeStub implements LaunchCode {
+export class ExpiredLaunchCodeStu implements LaunchCode {
   isSigned() {
     return true
   }
 
   isExpired() {
-    return false
+    return true
   }
 }
 ```
@@ -143,6 +143,107 @@ export class ValidLaunchCodeStub implements LaunchCode {
 1. テストコードにアサーションが存在しないため、テストの意図がわかりにくい。
 2. 実装コードで例外をキャッチすることで、`launch()` してもテストを通せてしまう。
 
-2. について補足します。
+2. について補足します。`launchRocket()` が次のように実装されたとしましょう。
+
+```typescript
+  launchRocket() {
+    try {
+      this.rocket.launch()
+    } catch (error) {}
+  }
+```
+
+これはロケットを発射しているにも関わらず、テストをパスしてしまいます。これはテストが実装を駆動していない、つまり TDD として機能していないと言えます。
+
+これを改善するためにスパイを導入してみましょう。
+
+## スパイの導入
+
+スパイは前述の通り「どのように呼び出されたかを記録するテストダブル」です。具体的な例がないと理解しづらいかもしれません。早速ロケットのスパイを作ってみましょう。
+
+```typescript
+export class RocketSpy implements Rocket {
+  launchWasCalled = false
+
+  launch() {
+    this.launchWasCalled = true
+  }
+
+  wasLaunchCalled(): boolean {
+    return this.launchWasCalled
+  }
+
+  disable() {}
+}
+```
+
+いかがでしょう。これはスパイに見えますか? `launch()` すると `launchWasCalled` フラグが true になり、`wasLaunchCalled()` をコールすることで `launchWasCalled` フラグの値が得られます。「`launch()` が呼ばれたかどうかを記録したい」という目的を叶える実装です。
+
+これを使ってテストコードを書き換えてみましょう。次のようになるはずです。
+
+```typescript
+it("発射コードが期限切れであれば、ロケットは発射しない", () => {
+  const rocket = new RocketSpy()
+
+  const launcher = new Launcher(rocket, new ExpiredLaunchCodeStub())
+  launcher.launchRocket()
+
+  expect(rocket.wasLaunchCalled()).toBe(false)
+})
+```
+
+`Launcher` のコンストラクタに渡した `rocket` が `launch()` していれば `rocket.wasLaunchCalled()` が `true` を返します。ここまでの実装では、このテストは失敗します。
+
+:::message
+「あれ? これって Vitest/Jest で実現できるんじゃないの?」と思われたでしょうか。その通りです。このテストは次のコードとほぼ等価です。
+
+```typescript
+it("発射コードが期限切れであれば、ロケットは発射しない", () => {
+  const rocket = new ValidRocket()
+  const launchSpy = vi.spyOn(rocket, "launch")
+
+  const launcher = new Launcher(rocket, new ExpiredLaunchCodeStub())
+  launcher.launchRocket()
+
+  expect(launchSpy).not.toHaveBeenCalled()
+})
+```
+
+この `vi.spyOn()` は正に、スパイを作るというメソッドです。しかし、本記事では、これ以降 Vitest や Jest には触れません。これらのテストライブラリは便利な一方、抽象度の高さから背後の動きを理解しづらいためです。ライブラリを避けてテストダブルを実装することで、テストダブルは意外と単純なものだと感じてもらうことを、本記事の主眼としています。
+:::
+
+さて、このテストを通すには実装を次のようにすれば良いです。
+
+```typescript
+  launchRocket() {
+    if (!this.launchCode.isExpired()) {
+      this.rocket.launch()
+    }
+  }
+```
+
+ダミーよりもスパイの方がテストの意図が汲み取りやすいのではないでしょうか。スパイを使うことで Given-When-Then 構文 [^2] に則ったテストが書けます。先ほどのスパイを使ったコードにコメントをつけてみましょう。
+
+[^2]: Martin Fowler 氏のブログに [Given When Then](https://martinfowler.com/bliki/GivenWhenThen.html) 構文についての記事があります。テストコードを 3 つのセクションに分割し「ある条件で」「ある操作をすると」「ある結果になる (ことを期待する)」と記述することで、テストの意図を伝える構文です。
+
+```typescript
+it("発射コードが期限切れであれば、ロケットは発射しない", () => {
+  // Given: ロケットが存在するとき
+  const rocket = new RocketSpy()
+
+  // When: 有効期限切れの発射コードでロケットを発射しようとすると
+  const launcher = new Launcher(rocket, new ExpiredLaunchCodeStub())
+  launcher.launchRocket()
+
+  // Then: ロケットは発射されない
+  expect(rocket.wasLaunchCalled()).toBe(false)
+})
+```
+
+意図が伝わりますね。また、ダミーのときは例外を飲み込むことで不正にテストをパスできましたが、スパイではそうはいきません。実装を駆動するテストが書けました。テスト駆動開発できた、と言っても良いと思います。
+
+続いてモックについて見てみましょう。
+
+## モックの導入
 
 (執筆中)
