@@ -188,7 +188,7 @@ it("発射コードが期限切れであれば、ロケットは発射しない"
 })
 ```
 
-`Launcher` のコンストラクタに渡した `rocket` が `launch()` していれば `rocket.wasLaunchCalled()` が `true` を返します。今はこのテストは失敗します。
+`launcher.launchRocket()` メソッドに渡した `rocket` が `launch()` していれば `rocket.wasLaunchCalled()` が `true` を返します。今はこのテストは失敗します。
 
 :::message
 「これは Vitest/Jest で実現できのでは」と思われたでしょうか。その通りです。このテストは次のコードとほぼ等価です。
