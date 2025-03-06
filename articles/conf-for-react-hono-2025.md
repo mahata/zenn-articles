@@ -26,6 +26,8 @@ $ tree .
 
 なお [Node.js](https://nodejs.org/) および [pnpm](https://pnpm.io) はすでにインストールされているものと仮定しています。筆者は macOS で作業しましたが、モダンなシェルが動く環境であれば再現できる手順だと思います。
 
+最後に「おまけ」として、この構成で Cloudflare Workers へデプロイする方法も書きました。
+
 ## `frontend/` を作る
 
 新規プロジェクトに `frontend/` ディレクトリを作り、そこに React プロジェクトを配置します。
@@ -206,6 +208,37 @@ app.use('/api/*', cors({
 ```
 
 これは開発環境で React からの API リクエストを受け取れるようにするためです。これがないと CORS の制約により、HTTP リクエストが通りません。
+
+## (おまけ) Cloudflare Workers へのデプロイ
+
+Hono アプリは Cloudflare Workers へ簡単にデプロイできます。`backend/` ディレクトリに移動して `pnpm run deploy` とするだけです。これで Hono アプリ **だけ** が Cloudflare Workers にデプロイされます。
+
+しかし、本記事は React と Hono でサービスを構成しています。React も一緒にデプロイするにはどうすればいいのでしょう? [Cloudflare Workers の Static Assets](https://developers.cloudflare.com/workers/static-assets/) は選択肢のひとつです。これは Cloudflare Workers を使いつつ、特定のディレクトリのファイルを静的にホストするというものです。`frontend/` のビルド結果を `backend/` 以下に出力し、それを Static Assets とすれば React と Hono を併せてデプロイできます。
+
+`frontend/package.json` の `scripts.build` を次のように書き換えましょう。
+
+```json
+...
+   "build": "tsc -b && vite build --outDir=../backend/dist",
+...
+```
+
+`--outDir` を追加したので、React をビルドしたものが `backend/dist` に出力されます。
+
+そして `backend/wrangler.jsonc` には次のように `assets` の設定を追加します。
+
+```json
+...
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  }
+...
+```
+
+これで準備はできました。`frontend/` で `pnpm build` し、`backend/` で `pnpm run deploy` すると Cloudflare Workers へデプロイできます。
+
+実務的には、毎回ディレクトリを移動してコマンドをたくさん叩きたくはないので、小さいスクリプトを準備してあげる方が良いと思います。
 
 ## あえて無視したもの
 
