@@ -142,3 +142,7 @@ description: '新しい React フォームコンポーネントを生成する'
 ちなみに、僕はGitHubでコードを検索する趣味があります。「instruction files」について知ったとき、僕は `path:**/*.instructions.md` という検索クエリを使って[GitHubで検索してみました](https://github.com/search?type=code&q=path%3A**%2F*.instructions.md)。しかし、「instruction files」として有効な結果はあまり得られませんでした。
 
 これらのファイルをコミットすべきかどうかという議論もあるとは思いますが、もっと多くのサンプルが世に出回ることを期待して、この記事を締めくくろうと思います。
+
+### 追記 (2025年7月3日)
+
+MicrosoftのDev Blogで「[Introducing the Awesome GitHub Copilot Customizations repo](https://devblogs.microsoft.com/blog/introducing-awesome-github-copilot-customizations-repo)」という記事が投稿されました。ここからリンクされている[awesome-copilot](https://github.com/github/awesome-copilot/tree/main)というリポジトリは、まさに「instruction files」と「prompt files」の宝庫のような内容になっており、参考になります。
