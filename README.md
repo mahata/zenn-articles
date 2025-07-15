@@ -4,7 +4,7 @@
 
 ## Commands
 
-```
-$ npx zenn new:article --slug my-slug
-$ npx zenn preview
+```bash
+npx zenn new:article --slug my-slug
+npx zenn preview
 ```
