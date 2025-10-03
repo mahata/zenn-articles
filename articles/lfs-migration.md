@@ -1,6 +1,6 @@
 ---
 title: "Gitリポジトリの大きなバイナリファイルをGit LFSに移行する方法"
-emoji: "🙌"
+emoji: "💾"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["git", "gitlfs", "github"]
 published: true
