@@ -1,6 +1,6 @@
 ---
 title: "GitHub Copilot Coding Agentが利用しているGitHub Actionsの使用料"
-emoji: "✨"
+emoji: "💸"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["github", "githubactions", "githubcopilot"]
 published: true
