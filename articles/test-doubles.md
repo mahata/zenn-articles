@@ -134,7 +134,7 @@ export class ExpiredLaunchCodeStub implements LaunchCode {
 
 このテストは失敗します。`dummyRocket` は `launch()` すると例外を投げるのだから、当然ですね。
 
-これで「ロケットが使われると失敗する」テストができあがりました! めでたしめでたし...となるでしょうか? なりませんね。このテストには次の問題があります。
+これで「ロケットが使われると失敗する」テストができあがりました! [Red-Green-Refactor](https://martinfowler.com/bliki/TestDrivenDevelopment.html) サイクルの最初の `Red` に至れました。めでたしめでたし...となるでしょうか? なりませんね。このテストには次の問題があります。
 
 1. テストコードにアサーションが存在しないため、テストの意図がわかりにくい。
 2. 実装コードで例外を握りつぶすことで、`launch()` してもテストを通せてしまう。
