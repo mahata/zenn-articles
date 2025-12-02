@@ -100,7 +100,7 @@ export class Launcher {
 ```typescript
 export class DummyRocket implements Rocket {
   launch() {
-    throw Error()
+    throw new Error("DummyRocket cannot be launched")
   }
 
   disable() {}
