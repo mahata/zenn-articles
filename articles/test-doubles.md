@@ -198,8 +198,8 @@ it("発射コードが期限切れであれば、ロケットは発射しない"
   const rocket = new ValidRocket()
   const launchSpy = vi.spyOn(rocket, "launch")
 
-  const launcher = new Launcher()
-  launcher.launchRocket(rocket, new ExpiredLaunchCodeStub())
+  const launcher = new Launcher(rocket, new ExpiredLaunchCodeStub())
+  launcher.launchRocket()
 
   expect(launchSpy).not.toHaveBeenCalled()
 })
