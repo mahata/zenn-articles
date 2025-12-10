@@ -93,7 +93,7 @@ export class Launcher {
 
 ### ダミーのロケット
 
-ロケットを発射するには、有効な発射コードが必要です。発射コードは、有効期限が切れると無効になります。有効期限切れの発射コードではロケットが発射されないことをテストで確認するにはどうすればいいでしょう。
+ロケットを発射するには、有効な発射コードが必要です。発射コードは、有効期限が切れると無効になります。有効な発射コードでロケットが発射される機能を、テスト駆動で実装するにはどうすればいいでしょう。
 
 ダミーのロケットを使う案を見てみましょう。
 
@@ -107,26 +107,26 @@ export class DummyRocket implements Rocket {
 }
 ```
 
-ダミーは「実際に使おうとすると壊れる」テストダブルです。`launchRocket()` が `DummyRocket` を使おうとすると失敗するテストは次の通りです。
+ダミーは「実際に使おうとすると壊れる」テストダブルです。`launchRocket()` が `DummyRocket` を使おうとして失敗するテストは次の通りです。
 
 ```typescript
-it("発射コードが期限切れであれば、ロケットは発射しない", () => {
+it("発射コードが有効であれば、ロケットは発射する", () => {
   const launcher = new Launcher()
-  launcher.launchRocket(new DummyRocket(), new ExpiredLaunchCodeStub())
+  launcher.launchRocket(new DummyRocket(), new ValidLaunchCodeStub())
 })
 ```
 
 :::message
-`ExpiredLaunchCodeStub` は次のように実装されます。このクラスは「スタブ」というテストダブルです。スタブの定義は後で説明します。
+`ValidLaunchCodeStub` は次のように実装されます。このクラスは「スタブ」というテストダブルです。スタブの定義は後で説明します。
 
 ```typescript
-export class ExpiredLaunchCodeStub implements LaunchCode {
+export class ValidLaunchCodeStub implements LaunchCode {
   isSigned() {
     return true
   }
 
   isExpired() {
-    return true
+    return false
   }
 }
 ```
@@ -134,12 +134,12 @@ export class ExpiredLaunchCodeStub implements LaunchCode {
 
 このテストは失敗します。`dummyRocket` は `launch()` すると例外を投げるのだから、当然ですね。
 
-これで「ロケットが使われると失敗する」テストができあがりました! [Red-Green-Refactor](https://martinfowler.com/bliki/TestDrivenDevelopment.html) サイクルの最初の `Red` に至れました。めでたしめでたし...となるでしょうか? なりませんね。このテストには次の問題があります。
+これで [Red-Green-Refactor](https://martinfowler.com/bliki/TestDrivenDevelopment.html) サイクルの最初の `Red` に至れました。めでたしめでたし...となるでしょうか? なりませんね。このテストには次の問題があります。
 
 1. テストコードにアサーションが存在しないため、テストの意図がわかりにくい。
 2. 実装コードで例外を握りつぶすことで、`launch()` してもテストを通せてしまう。
 
-2. について補足します。`launchRocket()` が次のように実装されたとしましょう。
+「2.」について補足します。`launchRocket()` が次のように実装されたとしましょう。
 
 ```typescript
   launchRocket() {
