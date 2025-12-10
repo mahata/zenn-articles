@@ -84,7 +84,7 @@ export interface LaunchCode {
 ```typescript
 export class Launcher {
   launchRocket(rocket: Rocket, launchCode: LaunchCode) {
-    this.rocket.launch()
+    rocket.launch()
   }
 }
 ```
