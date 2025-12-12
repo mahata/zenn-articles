@@ -444,7 +444,7 @@ it("使用済みの発射コードであれば、ロケットは発射しない"
 ```typescript
   launchRocket(rocket: Rocket, launchCode: LaunchCode, usedLaunchCodes: UsedLaunchCodes) {
     if (
-      !usedLaunchCodes.contain(launchCode) &&
+      !usedLaunchCodes.contains(launchCode) &&
       !launchCode.isExpired() &&
       launchCode.isSigned()
     ) {
@@ -464,7 +464,7 @@ it("使用済みの発射コードであれば、ロケットは発射しない"
 
 ```typescript
 export interface UsedLaunchCodes {
-  contain(launchCode: LaunchCode): boolean
+  contains(launchCode: LaunchCode): boolean
   add(launchCode: LaunchCode): void
 }
 ```
@@ -476,11 +476,11 @@ it("contains() は発射コードが使用済みか判別する", () => {
   const usedLaunchCodes = new FakeUsedLaunchCodes()
   const launchCode = new ValidLaunchCode()
 
-  expect(usedLaunchCodes.contain(launchCode)).toBe(false)
+  expect(usedLaunchCodes.contains(launchCode)).toBe(false)
 
   usedLaunchCodes.add(launchCode)
 
-  expect(usedLaunchCodes.contain(launchCode)).toBe(true)
+  expect(usedLaunchCodes.contains(launchCode)).toBe(true)
 })
 ```
 
@@ -494,7 +494,7 @@ export class FakeUsedLaunchCodes implements UsedLaunchCodes {
     this.launchCodes.add(launchCode)
   }
 
-  contain(launchCode: LaunchCode): boolean {
+  contains(launchCode: LaunchCode): boolean {
     return this.launchCodes.has(launchCode)
   }
 }
