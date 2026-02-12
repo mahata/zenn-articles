@@ -1,6 +1,6 @@
 ---
 title: "GitHub Appで「組織」に所属するAPIトークンを取得"
-emoji: "🎉"
+emoji: "🏢"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["github", "api"]
 published: true
