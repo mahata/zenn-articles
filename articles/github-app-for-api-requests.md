@@ -215,6 +215,7 @@ export ORG="your_github_org"
 export REPO="your_github_repo"
 export PRIVATE_KEY_PEM="/path/to/your/private_key.pem"
 
+# (前述のソースコードが github_app_example.py というファイル名で保存されていると仮定)
 python github_app_example.py
 ```
 
