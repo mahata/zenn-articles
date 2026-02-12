@@ -27,8 +27,7 @@ GitHub Appを利用してAPIリクエストを行うには、まずJWT (JSON Web
 1. GitHubの組織ページにアクセスし、右上の「Settings」をクリックします。
 2. 左側のメニューから「Developer settings」を選択し、「GitHub Apps」をクリックします。
 3. 「New GitHub App」ボタンをクリックして、新しいGitHub Appを作成します。
-4. 必要な情報を入力します。特に「Permissions & events」セクションで、APIリクエストに必要な権限を設定します（APIを利用するだけであれば、ここ以外は適当で構いません）
-。
+4. 必要な情報を入力します。特に「Permissions & events」セクションで、APIリクエストに必要な権限を設定します（APIを利用するだけであれば、ここ以外は適当で構いません）。
 5. 「Create GitHub App」ボタンをクリックして、GitHub Appを作成します（表示される`App ID` はメモしておきます。）。
 6. 作成後、GitHub Appの設定ページで「Generate a private key」ボタンをクリックして、秘密鍵を生成し、ダウンロードします。この秘密鍵は後でJWTを生成するために使用します。
 7. GitHub Appを組織にインストールします。`https://github.com/apps/<GITHUB APP NAME>/installations/new` からインストールします。
