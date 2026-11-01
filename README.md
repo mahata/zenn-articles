@@ -5,6 +5,7 @@
 ## Commands
 
 ```bash
-npx zenn new:article --slug my-slug
-npx zenn preview
+pnpm install
+pnpm exec zenn new:article --slug my-slug
+pnpm exec zenn preview
 ```

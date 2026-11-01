@@ -19,5 +19,6 @@
   "homepage": "https://github.com/mahata/zenn-articles#readme",
   "dependencies": {
     "zenn-cli": "^0.5.4"
-  }
+  },
+  "packageManager": "pnpm@12.16.1"
 }
