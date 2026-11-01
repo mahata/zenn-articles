@@ -6,6 +6,6 @@
 
 ```bash
 pnpm install
-pnpm exec zenn new:article --slug my-slug
-pnpm exec zenn preview
+pnpm zenn new:article --slug my-slug
+pnpm zenn preview
 ```
