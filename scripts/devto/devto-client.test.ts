@@ -108,7 +108,7 @@ describe("createDevtoClient", () => {
     });
   });
 
-  test("updates an article by id", async () => {
+  test("updates an article by id and lets its front matter decide the tags", async () => {
     const { fetchStub, recordedRequests } = createFetchStub([jsonResponse(rawArticle(9))]);
     const client = createDevtoClient({ apiKey: "secret-key", fetch: fetchStub });
 
@@ -119,7 +119,7 @@ describe("createDevtoClient", () => {
     assert.equal(recordedRequests[0]?.init.method, "PUT");
     assert.equal(headersOf(recordedRequests[0]).get("content-type"), "application/json");
     assert.deepEqual(JSON.parse(String(recordedRequests[0]?.init.body)), {
-      article: { body_markdown: "---\ntitle: Title 9\n---\n" },
+      article: { body_markdown: "---\ntitle: Title 9\n---\n", tags: [] },
     });
   });
 

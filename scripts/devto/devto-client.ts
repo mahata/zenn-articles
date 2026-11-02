@@ -6,6 +6,7 @@ const USER_AGENT = "zenn-articles-devto-sync (+https://github.com/mahata/zenn-ar
 const MAX_PAGE_SIZE = 1000;
 const DEFAULT_TIMEOUT_MS = 30_000;
 const WRITE_INTERVAL_MS = 1000;
+const EMPTY_TAGS_SO_FRONT_MATTER_DECIDES: string[] = [];
 
 export type DevtoArticle = {
   id: number;
@@ -64,12 +65,16 @@ export function createDevtoClient({
     return response.json();
   }
 
-  async function writeArticle(method: "POST" | "PUT", path: string, bodyMarkdown: string): Promise<DevtoArticle> {
+  async function writeArticle(
+    method: "POST" | "PUT",
+    path: string,
+    article: Record<string, unknown>,
+  ): Promise<DevtoArticle> {
     if (hasSentWrite) {
       await sleep(WRITE_INTERVAL_MS);
     }
     hasSentWrite = true;
-    return parseArticle(await requestJson(method, path, { article: { body_markdown: bodyMarkdown } }));
+    return parseArticle(await requestJson(method, path, { article }));
   }
 
   return {
@@ -87,11 +92,14 @@ export function createDevtoClient({
     },
 
     async createArticle(bodyMarkdown) {
-      return writeArticle("POST", "/articles", bodyMarkdown);
+      return writeArticle("POST", "/articles", { body_markdown: bodyMarkdown });
     },
 
     async updateArticle(articleId, bodyMarkdown) {
-      return writeArticle("PUT", `/articles/${articleId}`, bodyMarkdown);
+      return writeArticle("PUT", `/articles/${articleId}`, {
+        body_markdown: bodyMarkdown,
+        tags: EMPTY_TAGS_SO_FRONT_MATTER_DECIDES,
+      });
     },
   };
 }
