@@ -164,4 +164,31 @@ describe("createDevtoClient", () => {
 
     await assert.rejects(client.listMyArticles(), /timeout/i);
   });
+
+  test("waits between writes because dev.to accepts one write per second", async () => {
+    const { fetchStub, recordedRequests } = createFetchStub([
+      jsonResponse(rawArticle(1), { status: 201 }),
+      jsonResponse([rawArticle(1)]),
+      jsonResponse({ error: "boom", status: 422 }, { status: 422 }),
+      jsonResponse(rawArticle(2), { status: 201 }),
+    ]);
+    const requestedWaits: Array<{ milliseconds: number; requestsSoFar: number }> = [];
+    const client = createDevtoClient({
+      apiKey: "secret-key",
+      fetch: fetchStub,
+      sleep: async (milliseconds) => {
+        requestedWaits.push({ milliseconds, requestsSoFar: recordedRequests.length });
+      },
+    });
+
+    await client.createArticle("first");
+    await client.listMyArticles();
+    await assert.rejects(client.updateArticle(1, "second"));
+    await client.createArticle("third");
+
+    assert.deepEqual(requestedWaits, [
+      { milliseconds: 1000, requestsSoFar: 2 },
+      { milliseconds: 1000, requestsSoFar: 3 },
+    ]);
+  });
 });

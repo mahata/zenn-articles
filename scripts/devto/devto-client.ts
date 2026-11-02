@@ -1,8 +1,11 @@
+import { setTimeout as sleepFor } from "node:timers/promises";
+
 const DEVTO_API_BASE_URL = "https://dev.to/api";
 const DEVTO_API_V1_MEDIA_TYPE = "application/vnd.forem.api-v1+json";
 const USER_AGENT = "zenn-articles-devto-sync (+https://github.com/mahata/zenn-articles)";
 const MAX_PAGE_SIZE = 1000;
 const DEFAULT_TIMEOUT_MS = 30_000;
+const WRITE_INTERVAL_MS = 1000;
 
 export type DevtoArticle = {
   id: number;
@@ -22,6 +25,7 @@ export type DevtoClientOptions = {
   fetch?: typeof fetch;
   pageSize?: number;
   timeoutMs?: number;
+  sleep?: (milliseconds: number) => Promise<unknown>;
 };
 
 export function createDevtoClient({
@@ -29,7 +33,10 @@ export function createDevtoClient({
   fetch: fetchFromApi = fetch,
   pageSize = MAX_PAGE_SIZE,
   timeoutMs = DEFAULT_TIMEOUT_MS,
+  sleep = sleepFor,
 }: DevtoClientOptions): DevtoClient {
+  let hasSentWrite = false;
+
   async function requestJson(method: string, path: string, requestBody?: unknown): Promise<unknown> {
     const headers = new Headers({
       "api-key": apiKey,
@@ -57,6 +64,14 @@ export function createDevtoClient({
     return response.json();
   }
 
+  async function writeArticle(method: "POST" | "PUT", path: string, bodyMarkdown: string): Promise<DevtoArticle> {
+    if (hasSentWrite) {
+      await sleep(WRITE_INTERVAL_MS);
+    }
+    hasSentWrite = true;
+    return parseArticle(await requestJson(method, path, { article: { body_markdown: bodyMarkdown } }));
+  }
+
   return {
     async listMyArticles() {
       const articles: DevtoArticle[] = [];
@@ -72,13 +87,11 @@ export function createDevtoClient({
     },
 
     async createArticle(bodyMarkdown) {
-      return parseArticle(await requestJson("POST", "/articles", { article: { body_markdown: bodyMarkdown } }));
+      return writeArticle("POST", "/articles", bodyMarkdown);
     },
 
     async updateArticle(articleId, bodyMarkdown) {
-      return parseArticle(
-        await requestJson("PUT", `/articles/${articleId}`, { article: { body_markdown: bodyMarkdown } }),
-      );
+      return writeArticle("PUT", `/articles/${articleId}`, bodyMarkdown);
     },
   };
 }
