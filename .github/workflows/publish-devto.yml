@@ -18,7 +18,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: devto-publish
+  group: ${{ inputs.dry-run && 'devto-dry-run' || 'devto-publish' }}
   cancel-in-progress: false
 
 jobs:
