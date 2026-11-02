@@ -1,50 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import type { DevtoArticle, DevtoClient } from "./devto-client.ts";
+import { createFakeDevtoClient, devtoArticle as remoteArticle } from "./fake-devto-client.ts";
 import { applySync, planSync, type SyncAction } from "./sync.ts";
 
 function markdownWithTitle(title: string, body = "Body"): string {
   return `---\ntitle: ${title}\npublished: true\n---\n\n${body}\n`;
-}
-
-function remoteArticle(id: number, title: string, bodyMarkdown: string): DevtoArticle {
-  return { id, title, url: `https://dev.to/mahata/article-${id}`, bodyMarkdown };
-}
-
-type FakeDevtoClient = DevtoClient & {
-  createdBodies: string[];
-  updatedArticles: Array<{ articleId: number; bodyMarkdown: string }>;
-};
-
-function createFakeDevtoClient({ failWhenBodyIncludes }: { failWhenBodyIncludes?: string } = {}): FakeDevtoClient {
-  const createdBodies: string[] = [];
-  const updatedArticles: Array<{ articleId: number; bodyMarkdown: string }> = [];
-  let nextArticleId = 100;
-
-  function failIfRequested(bodyMarkdown: string, method: string): void {
-    if (failWhenBodyIncludes !== undefined && bodyMarkdown.includes(failWhenBodyIncludes)) {
-      throw new Error(`dev.to API ${method} failed with 422: {"error":"boom"}`);
-    }
-  }
-
-  return {
-    createdBodies,
-    updatedArticles,
-    async listMyArticles() {
-      return [];
-    },
-    async createArticle(bodyMarkdown) {
-      failIfRequested(bodyMarkdown, "POST");
-      createdBodies.push(bodyMarkdown);
-      const articleId = nextArticleId++;
-      return remoteArticle(articleId, "Created", bodyMarkdown);
-    },
-    async updateArticle(articleId, bodyMarkdown) {
-      failIfRequested(bodyMarkdown, "PUT");
-      updatedArticles.push({ articleId, bodyMarkdown });
-      return remoteArticle(articleId, "Updated", bodyMarkdown);
-    },
-  };
 }
 
 describe("planSync", () => {
