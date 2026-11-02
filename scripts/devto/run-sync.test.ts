@@ -47,11 +47,13 @@ async function readArticleIdsFile(articlesDirectory: string): Promise<string> {
 describe("runDevtoSync", () => {
   test("creates new articles and records their IDs in sorted order", async () => {
     const newArticle = markdownWithTitle("New");
+    const olderArticle = markdownWithTitle("Older");
     const articlesDirectory = await createArticlesDirectory({
       "new-article.md": newArticle,
+      "older-article.md": olderArticle,
       [ARTICLE_IDS_FILE_NAME]: '{\n  "older-article": 1\n}\n',
     });
-    const client = createFakeDevtoClient({ remoteArticles: [devtoArticle(1, "Older", "Older body")] });
+    const client = createFakeDevtoClient({ remoteArticles: [devtoArticle(1, "Older", olderArticle)] });
     const options = syncOptions(articlesDirectory);
 
     const succeeded = await runDevtoSync({ ...options, client });
@@ -97,6 +99,22 @@ describe("runDevtoSync", () => {
     assert.deepEqual(client.createdBodies, []);
     assert.deepEqual(client.updatedArticles, []);
     assert.equal(await readArticleIdsFile(articlesDirectory), '{\n  "existing-article": 4\n}\n');
+  });
+
+  test("moves the ID of a renamed file instead of posting the article again", async () => {
+    const renamedArticle = markdownWithTitle("Renamed");
+    const articlesDirectory = await createArticlesDirectory({
+      "new-name.md": renamedArticle,
+      [ARTICLE_IDS_FILE_NAME]: '{\n  "old-name": 9\n}\n',
+    });
+    const client = createFakeDevtoClient({ remoteArticles: [devtoArticle(9, "Renamed", renamedArticle)] });
+
+    const succeeded = await runDevtoSync({ ...syncOptions(articlesDirectory), client });
+
+    assert.equal(succeeded, true);
+    assert.deepEqual(client.createdBodies, []);
+    assert.deepEqual(client.updatedArticles, []);
+    assert.equal(await readArticleIdsFile(articlesDirectory), '{\n  "new-name": 9\n}\n');
   });
 
   test("reports planned changes without writing anything in a dry run", async () => {

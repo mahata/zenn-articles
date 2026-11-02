@@ -1,5 +1,7 @@
 import type { DevtoArticle, DevtoClient } from "./devto-client.ts";
+import { normalizeDevtoTitle } from "./devto-title.ts";
 import { extractFrontMatterTitle } from "./front-matter.ts";
+import { hasSameMarkdown } from "./markdown-comparison.ts";
 
 export type LocalArticle = { slug: string; markdown: string };
 
@@ -17,13 +19,18 @@ export type SyncResult =
 
 export type SyncReport = { results: SyncResult[]; articleIdsBySlug: Map<string, number> };
 
+type AppliedAction = { result: SyncResult; articleId: number | undefined };
+
 export function planSync(
   localArticles: readonly LocalArticle[],
   articleIdsBySlug: ReadonlyMap<string, number>,
   remoteArticles: readonly DevtoArticle[],
 ): SyncAction[] {
   const remoteArticlesById = new Map(remoteArticles.map((remoteArticle) => [remoteArticle.id, remoteArticle]));
-  const linkedArticleIds = new Set(articleIdsBySlug.values());
+  const localSlugs = new Set(localArticles.map((localArticle) => localArticle.slug));
+  const linkedArticleIds = new Set(
+    [...articleIdsBySlug].filter(([slug]) => localSlugs.has(slug)).map(([, articleId]) => articleId),
+  );
 
   return localArticles.map((localArticle): SyncAction => {
     const { slug, markdown } = localArticle;
@@ -48,8 +55,10 @@ export function planSync(
       return { kind: "invalid", slug, reason: describeError(error) };
     }
 
+    const normalizedTitle = normalizeDevtoTitle(title);
     const unlinkedArticlesWithSameTitle = remoteArticles.filter(
-      (remoteArticle) => remoteArticle.title.trim() === title.trim() && !linkedArticleIds.has(remoteArticle.id),
+      (remoteArticle) =>
+        normalizeDevtoTitle(remoteArticle.title) === normalizedTitle && !linkedArticleIds.has(remoteArticle.id),
     );
     if (unlinkedArticlesWithSameTitle.length > 1) {
       const articleIds = unlinkedArticlesWithSameTitle.map((remoteArticle) => remoteArticle.id).join(", ");
@@ -74,41 +83,48 @@ export async function applySync(
   client: DevtoClient,
   articleIdsBySlug: ReadonlyMap<string, number>,
 ): Promise<SyncReport> {
-  const updatedArticleIdsBySlug = new Map(articleIdsBySlug);
+  const updatedArticleIdsBySlug = new Map<string, number>();
   const results: SyncResult[] = [];
   for (const action of actions) {
-    results.push(await applyAction(action, client, updatedArticleIdsBySlug));
+    const { result, articleId } = await applyAction(action, client);
+    results.push(result);
+    const recordedArticleId = articleId ?? articleIdsBySlug.get(action.slug);
+    if (recordedArticleId !== undefined) {
+      updatedArticleIdsBySlug.set(action.slug, recordedArticleId);
+    }
   }
   return { results, articleIdsBySlug: updatedArticleIdsBySlug };
 }
 
-async function applyAction(
-  action: SyncAction,
-  client: DevtoClient,
-  articleIdsBySlug: Map<string, number>,
-): Promise<SyncResult> {
+async function applyAction(action: SyncAction, client: DevtoClient): Promise<AppliedAction> {
   const { slug } = action;
   switch (action.kind) {
     case "invalid":
-      return { slug, outcome: "failed", reason: action.reason };
+      return { result: { slug, outcome: "failed", reason: action.reason }, articleId: undefined };
     case "unchanged":
-      articleIdsBySlug.set(slug, action.articleId);
-      return { slug, outcome: "unchanged", url: action.url, linkedByTitle: action.linkedByTitle };
+      return {
+        result: { slug, outcome: "unchanged", url: action.url, linkedByTitle: action.linkedByTitle },
+        articleId: action.articleId,
+      };
     case "update":
-      articleIdsBySlug.set(slug, action.articleId);
       try {
         const updatedArticle = await client.updateArticle(action.articleId, action.markdown);
-        return { slug, outcome: "updated", url: updatedArticle.url, linkedByTitle: action.linkedByTitle };
+        return {
+          result: { slug, outcome: "updated", url: updatedArticle.url, linkedByTitle: action.linkedByTitle },
+          articleId: action.articleId,
+        };
       } catch (error) {
-        return { slug, outcome: "failed", reason: describeError(error) };
+        return { result: { slug, outcome: "failed", reason: describeError(error) }, articleId: action.articleId };
       }
     case "create":
       try {
         const createdArticle = await client.createArticle(action.markdown);
-        articleIdsBySlug.set(slug, createdArticle.id);
-        return { slug, outcome: "created", url: createdArticle.url, linkedByTitle: false };
+        return {
+          result: { slug, outcome: "created", url: createdArticle.url, linkedByTitle: false },
+          articleId: createdArticle.id,
+        };
       } catch (error) {
-        return { slug, outcome: "failed", reason: describeError(error) };
+        return { result: { slug, outcome: "failed", reason: describeError(error) }, articleId: undefined };
       }
   }
 }
@@ -119,14 +135,10 @@ function compareWithRemoteArticle(
   linkedByTitle: boolean,
 ): SyncAction {
   const linkedArticle = { slug: localArticle.slug, articleId: remoteArticle.id, url: remoteArticle.url, linkedByTitle };
-  if (normalizeMarkdown(localArticle.markdown) === normalizeMarkdown(remoteArticle.bodyMarkdown)) {
+  if (hasSameMarkdown(localArticle.markdown, remoteArticle.bodyMarkdown)) {
     return { kind: "unchanged", ...linkedArticle };
   }
   return { kind: "update", markdown: localArticle.markdown, ...linkedArticle };
-}
-
-function normalizeMarkdown(markdown: string): string {
-  return markdown.replaceAll("\r\n", "\n").trimEnd();
 }
 
 function describeError(error: unknown): string {

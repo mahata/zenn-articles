@@ -80,6 +80,40 @@ describe("planSync", () => {
     assert.equal(actions[0]?.kind === "unchanged" ? actions[0].articleId : undefined, 4);
   });
 
+  test("links by title after normalizing it the way dev.to does", () => {
+    const markdown = markdownWithTitle("Jest → Vitest");
+
+    const actions = planSync([{ slug: "jest-to-vitest", markdown }], new Map(), [remoteArticle(4, "Jest Vitest", markdown)]);
+
+    assert.equal(actions[0]?.kind === "unchanged" ? actions[0].articleId : undefined, 4);
+  });
+
+  test("links a renamed file to the dev.to article recorded for its old name", () => {
+    const markdown = markdownWithTitle("Renamed");
+
+    const actions = planSync(
+      [{ slug: "new-name", markdown }],
+      new Map([["old-name", 9]]),
+      [remoteArticle(9, "Renamed", markdown)],
+    );
+
+    assert.deepEqual(actions, [
+      { kind: "unchanged", slug: "new-name", articleId: 9, url: "https://dev.to/mahata/article-9", linkedByTitle: true },
+    ]);
+  });
+
+  test("ignores languages that dev.to added to code blocks without one", () => {
+    const markdown = markdownWithTitle("Code", "```\nnpm install\n```");
+
+    const actions = planSync(
+      [{ slug: "code-article", markdown }],
+      new Map([["code-article", 10]]),
+      [remoteArticle(10, "Code", markdownWithTitle("Code", "```bash\nnpm install\n```"))],
+    );
+
+    assert.equal(actions[0]?.kind, "unchanged");
+  });
+
   test("updates a title-linked article whose body differs from dev.to", () => {
     const markdown = markdownWithTitle("Existing", "New body");
 
@@ -101,16 +135,19 @@ describe("planSync", () => {
     ]);
   });
 
-  test("does not link a dev.to article that is already mapped to another file", () => {
+  test("does not link a dev.to article that another file is mapped to", () => {
     const markdown = markdownWithTitle("Shared title");
 
     const actions = planSync(
-      [{ slug: "new-article", markdown }],
+      [
+        { slug: "new-article", markdown },
+        { slug: "other-article", markdown },
+      ],
       new Map([["other-article", 5]]),
       [remoteArticle(5, "Shared title", markdown)],
     );
 
-    assert.deepEqual(actions, [{ kind: "create", slug: "new-article", markdown }]);
+    assert.deepEqual(actions[0], { kind: "create", slug: "new-article", markdown });
   });
 
   test("reports an unmapped article as invalid when several dev.to articles share its title", () => {
@@ -226,6 +263,33 @@ describe("applySync", () => {
 
     assert.deepEqual(client.createdBodies, []);
     assert.deepEqual(report.results, [{ slug: "untitled-article", outcome: "failed", reason: "no title" }]);
+  });
+
+  test("keeps the recorded ID of an article that could not be synced", async () => {
+    const report = await applySync(
+      [{ kind: "invalid", slug: "broken-article", reason: "missing on dev.to" }],
+      createFakeDevtoClient(),
+      new Map([["broken-article", 3]]),
+    );
+
+    assert.deepEqual(report.articleIdsBySlug, new Map([["broken-article", 3]]));
+  });
+
+  test("drops the IDs of files that no longer exist", async () => {
+    const actions: SyncAction[] = [
+      { kind: "unchanged", slug: "kept-article", articleId: 2, url: "https://dev.to/mahata/article-2", linkedByTitle: false },
+    ];
+
+    const report = await applySync(
+      actions,
+      createFakeDevtoClient(),
+      new Map([
+        ["deleted-article", 1],
+        ["kept-article", 2],
+      ]),
+    );
+
+    assert.deepEqual(report.articleIdsBySlug, new Map([["kept-article", 2]]));
   });
 
   test("does not modify the given ID mapping", async () => {

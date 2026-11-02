@@ -39,7 +39,7 @@ export async function runDevtoSync({
   const updatedArticleIdsJson = serializeArticleIds(report.articleIdsBySlug);
   if (updatedArticleIdsJson !== serializeArticleIds(articleIdsBySlug)) {
     await writeFile(articleIdsPath, updatedArticleIdsJson);
-    log(`Recorded dev.to article IDs in ${articleIdsPath}`);
+    log(`Updated the dev.to ID mapping in ${articleIdsPath}`);
   }
   return report.results.every((result) => result.outcome !== "failed");
 }
