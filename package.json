@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test 'scripts/**/*.test.ts'",
+    "typecheck": "tsc",
+    "devto:sync": "node scripts/devto/main.ts"
   },
   "repository": {
     "type": "git",
@@ -20,5 +23,9 @@
   "dependencies": {
     "zenn-cli": "^0.5.4"
   },
-  "packageManager": "pnpm@12.16.1"
+  "packageManager": "pnpm@12.16.1",
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
 }
