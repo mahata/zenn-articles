@@ -49,6 +49,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore: record dev.to article IDs"
+          git commit -m "chore: update dev.to article IDs"
           git pull --rebase origin main
           git push origin HEAD:main
