@@ -37,12 +37,14 @@ published: true
 ---
 ```
 
-`articles-en/devto-articles.json` maps each file name (without `.md`) to its dev.to article ID. The workflow records the IDs of new articles there and commits them to `main` as github-actions[bot], so pull `main` before you push to it. A file without a recorded ID is linked to the dev.to article with the same title if one exists, so the same article is not posted twice.
+`articles-en/devto-articles.json` maps each file name (without `.md`) to its dev.to article ID. The workflow keeps it up to date and commits changes to `main` as github-actions[bot], so pull `main` before you push to it. A file without a recorded ID is linked to the dev.to article with the same title if one exists, so the same article is not posted twice.
 
 Keep in mind:
 
 - Edit articles in this repository, not on dev.to. An edit made on dev.to is overwritten the next time the workflow runs.
-- Deleting a file does not delete or unpublish its dev.to article.
+- A renamed file stays linked to its dev.to article as long as its title does not change in the same push.
+- Deleting a file does not delete or unpublish its dev.to article. It only removes the file from the ID mapping.
+- dev.to adds a language to code blocks that have none. The sync does not count those additions as changes.
 
 ### Setup
 
@@ -61,7 +63,7 @@ Run the workflow from the Actions tab. Check "dry-run" to only see the planned c
 DEVTO_API_KEY=your-api-key pnpm devto:sync --dry-run
 ```
 
-Without `--dry-run`, a local run creates and updates articles on dev.to and writes new IDs to `articles-en/devto-articles.json`.
+Without `--dry-run`, a local run creates and updates articles on dev.to and updates `articles-en/devto-articles.json`.
 
 ### Developing the sync script
 
