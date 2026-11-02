@@ -34,7 +34,18 @@ function parseTitleScalar(rawValue: string): string {
   if (rawValue.startsWith(">") || rawValue.startsWith("|")) {
     throw new Error("Block scalar titles are not supported; write the title on a single line");
   }
-  return rawValue;
+  return parsePlainTitle(rawValue);
+}
+
+function parsePlainTitle(rawValue: string): string {
+  const titleQuotedLikeDevto = `"${rawValue.replace(/(?<!\\)"/g, '\\"')}"`;
+  try {
+    return parseDoubleQuotedTitle(titleQuotedLikeDevto);
+  } catch {
+    throw new Error(
+      `dev.to cannot read the backslash escapes in the front matter title: ${rawValue}. Put the title in single quotes to keep backslashes as they are.`,
+    );
+  }
 }
 
 function parseDoubleQuotedTitle(rawValue: string): string {

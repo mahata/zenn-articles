@@ -33,6 +33,20 @@ describe("extractFrontMatterTitle", () => {
     assert.equal(extractFrontMatterTitle(markdown), "C# tips # draft name");
   });
 
+  test("decodes escapes in a plain title because dev.to wraps it in double quotes", () => {
+    const markdown = "---\ntitle: Understanding \\n escapes\n---\n";
+
+    assert.equal(extractFrontMatterTitle(markdown), "Understanding \n escapes");
+  });
+
+  test("keeps double quotes in a plain title whether or not they are escaped", () => {
+    assert.equal(extractFrontMatterTitle('---\ntitle: Say "hi" and \\"bye\\"\n---\n'), 'Say "hi" and "bye"');
+  });
+
+  test("throws for a plain title with an escape that dev.to cannot read", () => {
+    assert.throws(() => extractFrontMatterTitle("---\ntitle: C:\\Users\\mahata\n---\n"), /title/);
+  });
+
   test("supports CRLF line endings", () => {
     const markdown = "---\r\ntitle: Windows title\r\n---\r\nBody\r\n";
 

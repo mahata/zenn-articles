@@ -88,6 +88,18 @@ describe("planSync", () => {
     assert.equal(actions[0]?.kind === "unchanged" ? actions[0].articleId : undefined, 4);
   });
 
+  test("links a plain title with escapes by the title that dev.to decodes from it", () => {
+    const markdown = markdownWithTitle("Understanding \\n escapes");
+
+    const actions = planSync(
+      [{ slug: "understanding-escapes", markdown }],
+      new Map(),
+      [remoteArticle(11, "Understanding escapes", markdown)],
+    );
+
+    assert.equal(actions[0]?.kind === "unchanged" ? actions[0].articleId : undefined, 11);
+  });
+
   test("links a renamed file to the dev.to article recorded for its old name", () => {
     const markdown = markdownWithTitle("Renamed");
 
