@@ -34,7 +34,7 @@ function parseTitleScalar(rawValue: string): string {
   if (rawValue.startsWith(">") || rawValue.startsWith("|")) {
     throw new Error("Block scalar titles are not supported; write the title on a single line");
   }
-  return rawValue.replace(/\s+#.*$/, "");
+  return rawValue;
 }
 
 function parseDoubleQuotedTitle(rawValue: string): string {

@@ -49,7 +49,7 @@ export function planSync(
     }
 
     const unlinkedArticlesWithSameTitle = remoteArticles.filter(
-      (remoteArticle) => remoteArticle.title === title && !linkedArticleIds.has(remoteArticle.id),
+      (remoteArticle) => remoteArticle.title.trim() === title.trim() && !linkedArticleIds.has(remoteArticle.id),
     );
     if (unlinkedArticlesWithSameTitle.length > 1) {
       const articleIds = unlinkedArticlesWithSameTitle.map((remoteArticle) => remoteArticle.id).join(", ");

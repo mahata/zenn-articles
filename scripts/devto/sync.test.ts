@@ -72,6 +72,14 @@ describe("planSync", () => {
     ]);
   });
 
+  test("ignores surrounding whitespace when linking by title", () => {
+    const markdown = markdownWithTitle("Existing");
+
+    const actions = planSync([{ slug: "existing-article", markdown }], new Map(), [remoteArticle(4, " Existing  ", markdown)]);
+
+    assert.equal(actions[0]?.kind === "unchanged" ? actions[0].articleId : undefined, 4);
+  });
+
   test("updates a title-linked article whose body differs from dev.to", () => {
     const markdown = markdownWithTitle("Existing", "New body");
 

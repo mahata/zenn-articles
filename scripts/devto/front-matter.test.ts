@@ -27,10 +27,10 @@ describe("extractFrontMatterTitle", () => {
     assert.equal(extractFrontMatterTitle(markdown), "It's a title");
   });
 
-  test("drops a trailing comment from a plain title", () => {
+  test("keeps # characters in a plain title because dev.to quotes the whole value", () => {
     const markdown = "---\ntitle: C# tips # draft name\n---\n";
 
-    assert.equal(extractFrontMatterTitle(markdown), "C# tips");
+    assert.equal(extractFrontMatterTitle(markdown), "C# tips # draft name");
   });
 
   test("supports CRLF line endings", () => {
