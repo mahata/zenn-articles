@@ -8,7 +8,7 @@ published: true
 
 ## この記事は何ですか?
 
-先日、[copilotview](https://copilotview.mahata.org/) を公開しました。copilotview は、[GitHub Copilot CLI](https://docs.github.com/ja/copilot/concepts/agents/about-copilot-cli) と [GitHub Copilot app](https://docs.github.com/ja/copilot/concepts/copilot-surfaces/github-copilot-app) の過去のセッションを検索したり、読み返したり、使用量を集計したりするツールです。処理はすべて手元のマシンの中で完結し、リモートの API は呼び出しません。
+先日、[copilotview](https://copilotview.mahata.org/) を公開しました。copilotview は、[GitHub Copilot CLI](https://docs.github.com/ja/copilot/concepts/copilot-surfaces/copilot-cli) と [GitHub Copilot app](https://docs.github.com/ja/copilot/concepts/copilot-surfaces/github-copilot-app) の過去のセッションを検索したり、読み返したり、使用量を集計したりするツールです。処理はすべて手元のマシンの中で完結し、リモートの API は呼び出しません。
 
 作ったきっかけは、過去のセッションでの会話や判断を後から探したかったことです。Copilot に何を頼み、Copilot がどう答え、最終的にどの方針で進めたのかは、セッションの記録に残っています。それを全文検索できるようにしようと考えたのが始まりでした。その後、セッションのデータを眺めているうちに AI credits の使用量も記録されていると気づき、使用量を集計する機能を足しました。
 
